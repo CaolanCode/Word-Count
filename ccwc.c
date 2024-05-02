@@ -9,7 +9,7 @@ long int byte_count(FILE *file) {
   return byte_count;
 }
 
-int count(FILE *file, long int *data) {
+void count(FILE *file, long int *data) {
   char ch;
   long int char_count = 0;
   long int word_count = 0;
@@ -37,35 +37,30 @@ int count(FILE *file, long int *data) {
   *data++ = line_count;
   *data++ = word_count;
   *data = char_count;
-  return 0;
 }
 
-int print_results(long int *data, int argc, char *argv[], long int byte_size) {
+void print_options(long int *data, int argc, char *argv[]) {
+  printf("    ");
+  if (strcmp(argv[1], "-l") == 0) {
+    printf("%ld  ", data[0]);
+  } else if (strcmp(argv[1], "-w") == 0) {
+    printf("%ld  ", data[1]);
+  } else if (strcmp(argv[1], "-m") == 0) {
+    printf("%ld  ", data[2]);
+  }
+}
+
+void print_results(long int *data, int argc, char *argv[], long int byte_size) {
   if (argc == 2) {
     printf("    %ld   %ld  %ld %s\n", data[0], data[1], byte_size, argv[1]);
-    return 0;
+    return;
   }
-  for (int i = 1; i < argc; i++) {
-    if (i == 1) {
-      printf("    ");
-    }
-    if (strcmp(argv[i], "-l") == 0) {
-      printf("%ld  ", data[0]);
-    }
-    if (strcmp(argv[i], "-w") == 0) {
-      printf("%ld  ", data[1]);
-    }
-    if (strcmp(argv[i], "-c") == 0) {
-      printf("%ld  ", byte_size);
-    }
-    if (strcmp(argv[i], "-m") == 0) {
-      printf("%ld  ", data[2]);
-    }
-    if (i == argc - 1) {
-      printf("%s\n", argv[1]);
-    }
+  if (strcmp(argv[1], "-c") == 0) {
+    printf("    %ld  ", byte_size);
+  } else {
+    print_options(data, argc, argv);
   }
-  return 0;
+  printf("%s\n", argv[2]);
 }
 
 int main(int argc, char *argv[]) {
@@ -75,14 +70,17 @@ int main(int argc, char *argv[]) {
   }
   char *filename = argv[argc - 1];
   FILE *file = fopen(filename, "r");
-  if (file == 0) {
-    printf("    Could not open file\n");
-    return 1;
-  }
   long int data[] = {0, 0, 0};
-  long int byte_size = byte_count(file);
-  count(file, data);
-  fclose(file);
-  print_results(data, argc, argv, byte_size);
+  if (file == 0) {
+    file = stdin;
+    count(file, data);
+    print_options(data, argc, argv);
+    printf("\n");
+  } else {
+    long int byte_size = byte_count(file);
+    count(file, data);
+    print_results(data, argc, argv, byte_size);
+    fclose(file);
+  }
   return 0;
 }
